@@ -47,7 +47,12 @@ public class ActivityService {
         return userActivityRepository.findByUserId(Long.valueOf(userId));
     }
 
-    //EN ADTAM HOZZA
+    // Method to save user activity when a user logs in
     public void saveActivity(UserLoggedInEvent event) {
+        UserActivity activity = new UserActivity(); // Create a new UserActivity instance
+        activity.setUserId(Long.valueOf(event.getUserId()));; // Set the user ID from the event
+        activity.setActivityType(ActivityType.LOGIN); // Set the activity type to LOGIN
+        activity.setTimestamp(LocalDateTime.now()); // Set the current timestamp for the activity
+        userActivityRepository.save(activity); // Save the activity to the database using the repository
     }
 }

@@ -12,9 +12,4 @@ public class UserLoggedInEvent {
     private String userId;
     private LocalDateTime timestamp;
 
-
-    //EN ADTAM HOZZA
-    public String getUserId() {
-        return userId;
-    }
 }
