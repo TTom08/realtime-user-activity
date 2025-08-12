@@ -1,7 +1,9 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.KafkaProducerDto;
 import com.example.auth_service.dto.LoginRequestDto;
 import com.example.auth_service.dto.RegisterRequestDto;
+import com.example.auth_service.kafka.KafkaProducerService;
 import com.example.auth_service.model.Role;
 import com.example.auth_service.model.User;
 import com.example.auth_service.repository.RoleRepository;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,13 +31,15 @@ public class AuthController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KafkaProducerService kafkaProducerService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository,RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository,RoleRepository roleRepository, PasswordEncoder passwordEncoder, KafkaProducerService kafkaProducerService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     @PostMapping("/register")
@@ -62,6 +67,13 @@ public class AuthController {
         newUser.setPassword(encodedPassword);
 
         userRepository.save(newUser);
+
+        KafkaProducerDto event = new KafkaProducerDto(
+                newUser.getId(),
+                "USER_REGISTERED",
+                LocalDateTime.now()
+        );
+        kafkaProducerService.sendMessage(event);
         return ResponseEntity.ok("User registered successfully");
     }
 
@@ -73,6 +85,15 @@ public class AuthController {
             System.out.println("Exception: " + e);
         }
         String token = jwtUtil.generateToken(loginRequestDto.username());
+        User user = userRepository.findByUsername(loginRequestDto.username())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        KafkaProducerDto event = new KafkaProducerDto(
+                user.getId(),
+                "USER_LOGIN",
+                LocalDateTime.now()
+        );
+        kafkaProducerService.sendMessage(event);
         return ResponseEntity.ok(token);
     }
 }
