@@ -1,8 +1,9 @@
 package com.example.activity_service.model;
 
 public enum ActivityType {
-    LOGIN,
-    LOGOUT,
+    USER_LOGIN,
+    USER_REGISTERED,
+    USER_LOGOUT,
     PAGE_VIEW,
     BUTTON_CLICK,
     FORM_SUBMISSION,
@@ -15,5 +16,5 @@ public enum ActivityType {
     LIKE,
     SHARE,
     NOTIFICATION_RECEIVED,
-    NOTIFICATION_CLICKED
+    LOGIN, NOTIFICATION_CLICKED
 }

@@ -1,21 +1,18 @@
 package com.example.activity_service.model;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
-/**
- * UserActivity represents an activity performed by a user in the system.
- * It contains the user ID, the type of activity, and the timestamp of when the activity occurred.
- */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table(name = "user_activity")
+@Table(name = "user_activities")
+@Data
 public class UserActivity {
 
     @Id
