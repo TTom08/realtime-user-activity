@@ -50,7 +50,7 @@ services:
     image: postgres:15
     container_name: my_activity_db
     ports:
-      - "2706:5432"  # A 2706-os portot köti a konténer 5432-es portjához
+      - "2706:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
