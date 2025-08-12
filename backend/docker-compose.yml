@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # User Details Database
+  postgres_users:
+    image: 'postgres:17.5'
+    container_name: postgres_users_container
+    ports:
+      - "2705:5432" # Expose user-details database to host port 2705
+    environment:
+      POSTGRES_DB: user-details
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: majkaskepek
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+
+  # Activity Database
+  postgres_activities:
+    image: 'postgres:17.5'
+    container_name: postgres_activities_container
+    ports:
+      - "2706:5432" # Expose activity-db database to host port 2706
+    environment:
+      POSTGRES_DB: activity-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: majkaskepek
+    volumes:
+      - postgres_activities_data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+
+  # Auth-service
+  auth-service:
+    build:
+      context: ./auth-service # Path to the auth-service directory
+    container_name: auth-service_container
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres_users
+      - kafka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_users:5432/user-details # Reference the new user DB service
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: majkaskepek
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+  # Activity-service
+  activity-service:
+    build:
+      context: ./activity-service # Path to the activity-service directory
+    container_name: activity-service_container
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres_activities
+      - kafka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db # Reference the new activity DB service
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: majkaskepek
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+volumes:
+  postgres_users_data:
+  postgres_activities_data:
