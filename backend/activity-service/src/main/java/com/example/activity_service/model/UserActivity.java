@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,5 +26,5 @@ public class UserActivity {
     @Enumerated(EnumType.STRING)
     private ActivityType activityType;
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 }

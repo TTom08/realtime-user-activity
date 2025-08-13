@@ -1,6 +1,6 @@
 package com.example.activity_service.service;
 
-import com.example.activity_service.dto.UserLoggedInEvent;
+import com.example.activity_service.dto.UserActivityEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class KafkaConsumerService {
     // When a UserLoggedInEvent is received, it prints the user ID to the console
     // and calls the saveActivity method of ActivityService to log the activity.
     @KafkaListener(topics = "user-activity-topic", groupId = "activity-service-group")
-    public void consumeUserLoggedInEvent(UserLoggedInEvent event) {
+    public void consumeUserLoggedInEvent(UserActivityEvent event) {
         System.out.println("Received user logged in event from Kafka: " + event.getUserId());
         // The saveActivity method of ActivityService is called to log the activity.
         activityService.saveActivity(event);
