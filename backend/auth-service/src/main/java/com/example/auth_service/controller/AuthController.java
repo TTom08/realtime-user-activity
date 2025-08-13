@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -71,7 +72,7 @@ public class AuthController {
         KafkaProducerDto event = new KafkaProducerDto(
                 newUser.getId(),
                 "USER_REGISTERED",
-                LocalDateTime.now()
+                Instant.now()
         );
         kafkaProducerService.sendMessage(event);
         return ResponseEntity.ok("User registered successfully");
@@ -91,7 +92,7 @@ public class AuthController {
         KafkaProducerDto event = new KafkaProducerDto(
                 user.getId(),
                 "USER_LOGIN",
-                LocalDateTime.now()
+                Instant.now()
         );
         kafkaProducerService.sendMessage(event);
         return ResponseEntity.ok(token);
