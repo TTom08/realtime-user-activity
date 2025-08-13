@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   # User Details Database
   postgres_users:
     image: 'postgres:17.5'
     container_name: postgres_users_container
     ports:
-      - "2705:5432" # Expose user-details database to host port 2705
+      - "3000:5432" # Expose user-details database to host port 2705
     environment:
       POSTGRES_DB: user-details
       POSTGRES_USER: postgres
@@ -19,7 +17,7 @@ services:
     image: 'postgres:17.5'
     container_name: postgres_activities_container
     ports:
-      - "2706:5432" # Expose activity-db database to host port 2706
+      - "3001:5432" # Expose activity-db database to host port 2706
     environment:
       POSTGRES_DB: activity-db
       POSTGRES_USER: postgres
@@ -37,6 +35,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka_container
     ports:
       - "9092:9092"
     environment:
@@ -52,6 +51,7 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui_container
     ports:
       - "8080:8080"
     environment:
@@ -67,7 +67,7 @@ services:
       context: ./auth-service # Path to the auth-service directory
     container_name: auth-service_container
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       - postgres_users
       - kafka
@@ -75,7 +75,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_users:5432/user-details # Reference the new user DB service
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: majkaskepek
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # FIX: Point to Kafka's internal listener for inter-container communication
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    restart: on-failure # Add a restart policy to handle connection failures
 
   # Activity-service
   activity-service:
@@ -83,7 +85,7 @@ services:
       context: ./activity-service # Path to the activity-service directory
     container_name: activity-service_container
     ports:
-      - "8081:8081"
+      - "8082:8082"
     depends_on:
       - postgres_activities
       - kafka
@@ -91,7 +93,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db # Reference the new activity DB service
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: majkaskepek
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # FIX: Point to Kafka's internal listener for inter-container communication
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    restart: on-failure # Add a restart policy to handle connection failures
 
 volumes:
   postgres_users_data:
