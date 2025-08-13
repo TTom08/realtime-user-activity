@@ -1,6 +1,6 @@
 package com.example.auth_service.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
-public record KafkaProducerDto(Long userId, String activityType, LocalDateTime timestamp) {
+public record KafkaProducerDto(Long userId, String activityType, Instant timestamp) {
 }
