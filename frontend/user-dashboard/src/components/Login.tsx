@@ -37,6 +37,8 @@ const Login = () => {
       const token = await response.text();;
       console.log('JWT Token received:', token);
 
+      localStorage.setItem('authToken', token);
+
       navigate('/home');
 
     } catch (error) {
