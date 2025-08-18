@@ -1,34 +1,20 @@
-import React, { useState } from "react";
-import "./App.css";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import HomePage from "./components/HomePage";
-
-type Page = "login" | "register";
+// src/App.tsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import Login from './components/Login';
+import Register from './components/Register'; 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>("login");
-
-  const handlePageChange = (page: Page) => {
-    setCurrentPage(page);
-  };
-
   return (
-    <>
-      {currentPage === "login" ? (
-        <Login onPageChange={() => handlePageChange("register")} />
-      ) : (
-        <Register onPageChange={() => handlePageChange("login")} />
-      )}
-    </>
-  )}
-
-export default App;
-
-<Router>
+    <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<Login/>} />
+        <Route path="/register" element={<Register/>} />
         <Route path="/home" element={<HomePage />} />
       </Routes>
     </Router>
+  );
+}
 
+export default App;
