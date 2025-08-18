@@ -1,7 +1,9 @@
+version: "3.8"
+
 services:
-  # User Details Database
+  # User Details Database (for auth-service)
   postgres_users:
-    image: 'postgres:17.5'
+    image: "postgres:17.5"
     container_name: postgres_users_container
     ports:
       - "3000:5432" # Expose user-details database to host port 2705
@@ -11,10 +13,11 @@ services:
       POSTGRES_PASSWORD: majkaskepek
     volumes:
       - postgres_users_data:/var/lib/postgresql/data
+    restart: on-failure
 
-  # Activity Database
+  # Activity Database (for activity-service)
   postgres_activities:
-    image: 'postgres:17.5'
+    image: "postgres:17.5"
     container_name: postgres_activities_container
     ports:
       - "3001:5432" # Expose activity-db database to host port 2706
@@ -24,15 +27,20 @@ services:
       POSTGRES_PASSWORD: majkaskepek
     volumes:
       - postgres_activities_data:/var/lib/postgresql/data
+    restart: on-failure
 
+  # Zookeeper (Kafka dependency)
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper_container
     ports:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: on-failure
 
+  # Kafka message broker
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka_container
@@ -48,7 +56,16 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+    restart: on-failure
+    healthcheck:
+      test:
+        ["CMD-SHELL", "kafka-topics --list --bootstrap-server localhost:29092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
+  # Kafka UI for easy debugging
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui_container
@@ -60,8 +77,9 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     depends_on:
       - kafka
+    restart: on-failure
 
-  # Auth-service
+  # The Auth-service
   auth-service:
     build:
       context: ./auth-service # Path to the auth-service directory
@@ -72,14 +90,13 @@ services:
       - postgres_users
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_users:5432/user-details # Reference the new user DB service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_users:5432/user-details
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: majkaskepek
-      # FIX: Point to Kafka's internal listener for inter-container communication
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    restart: on-failure # Add a restart policy to handle connection failures
+    restart: on-failure
 
-  # Activity-service
+  # The Activity-service
   activity-service:
     build:
       context: ./activity-service # Path to the activity-service directory
@@ -90,12 +107,11 @@ services:
       - postgres_activities
       - kafka
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db # Reference the new activity DB service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: majkaskepek
-      # FIX: Point to Kafka's internal listener for inter-container communication
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    restart: on-failure # Add a restart policy to handle connection failures
+    restart: on-failure
 
 volumes:
   postgres_users_data:
