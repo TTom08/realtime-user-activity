@@ -1,9 +1,49 @@
-type Page = "login" | "register";
-type Props = {
-  onPageChange: (page: Page) => void;
+import { useForm } from 'react-hook-form';
+import type { SubmitHandler } from "react-hook-form";
+import { useNavigate, Link } from 'react-router-dom';
+
+interface LoginFormData {
+  userName: string;
+  password: string;
 };
 
-const Login = ({ onPageChange }: Props) => {
+const Login = () => {
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>();
+
+  const onSubmit: SubmitHandler<LoginFormData> = async (formData) => {
+    try {
+      const response = await fetch('http://localhost:8081/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.userName,
+          password: formData.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Authentication failed with status: ${response.status}`);
+      }
+
+      const token = await response.text();;
+      console.log('JWT Token received:', token);
+
+      navigate('/home');
+
+    } catch (error) {
+      console.error('Error during authentication: ', error);
+    }
+  };
+
   return (
     <>
       <div className="min-h-screen flex flex-col justify-center custom-bg overflow-hidden">
@@ -17,7 +57,7 @@ const Login = ({ onPageChange }: Props) => {
           </div>
         </div>
         <div className="max-w-md w-full mx-auto mt-5  bg-gray-800/30 border border-gray-300 p-8 shadow-xl/35 rounded-sm">
-          <form action="" className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label
                 htmlFor=""
@@ -27,10 +67,11 @@ const Login = ({ onPageChange }: Props) => {
               </label>
               <input
                 type="text"
-                name=""
-                id=""
+                id="userName"
+                {...register("userName", { required: "Username is required." })}
                 className="w-full p-2 border border-gray-300 rounded mt-1 focus:bg-gray-200/10 text-white"
               />
+              {errors.userName && <p className='text-red-400 text-sm mt-1'>{errors.userName.message}</p>}
             </div>
             <div>
               <label
@@ -41,10 +82,11 @@ const Login = ({ onPageChange }: Props) => {
               </label>
               <input
                 type="password"
-                name=""
-                id=""
+                id="password"
+                {...register('password', { required: "Password is required." })}
                 className="w-full p-2 border border-gray-300 rounded mt-1 focus:bg-gray-200/10 text-white"
               />
+              {errors.password && <p className='text-red-400 text-sm mt-1'>{errors.password.message}</p>}
             </div>
             <div>
               <button
@@ -61,12 +103,11 @@ const Login = ({ onPageChange }: Props) => {
                 </label>
               </div>
               <div>
-                <button
-                  onClick={() => onPageChange("register")}
+                <Link to="/register"
                   className="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-md text-white text-sm"
                 >
                   Sign Up
-                </button>
+                </Link>
               </div>
             </div>
           </form>

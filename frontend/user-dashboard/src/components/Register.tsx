@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
+import { useNavigate, Link } from 'react-router-dom';
 
 interface RegisterFormData {
   fullName: string;
@@ -7,12 +8,9 @@ interface RegisterFormData {
   password: string;
 }
 
-type Page = "login" | "register";
-type Props = {
-  onPageChange: (page: Page) => void;
-};
+const Register = () => {
+const navigate = useNavigate();
 
-const Register = ({ onPageChange }: Props) => {
   const {
     register,
     handleSubmit,
@@ -43,7 +41,7 @@ const Register = ({ onPageChange }: Props) => {
       const result = await response.text();
       console.log('Registration successful: ', result);
 
-      onPageChange('login');
+      navigate('/');
 
     } catch (error) {
       console.error('Error during registration: ', error);
@@ -144,13 +142,11 @@ const Register = ({ onPageChange }: Props) => {
                 </label>
               </div>
               <div>
-                <button
-                  type="button"
-                  onClick={() => onPageChange("login")}
-                  className="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-md text-white text-sm"
-                >
-                  Sign In
-                </button>
+                <Link to="/"
+                className="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-md text-white text-sm"
+              >
+                Sign In
+              </Link>
               </div>
             </div>
           </form>
