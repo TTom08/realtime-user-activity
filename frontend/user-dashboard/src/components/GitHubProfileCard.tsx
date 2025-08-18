@@ -73,7 +73,7 @@ const GitHubProfileCard: React.FC<GitHubProfileCardProps> = ({ username }) => {
         href={profileData.html_url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-500 mt-2 hover:underline"
+        className="text-red-500 mt-2 hover:underline"
       >
         View Profile
       </a>
