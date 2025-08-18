@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import GitHubProfileCard from "./GitHubProfileCard";
 import { jwtDecode } from "jwt-decode";
 
-
 interface JwtPayload {
   sub: string;
 }
