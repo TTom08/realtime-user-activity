@@ -62,7 +62,7 @@ const Register = () => {
             Dashboard webapp with{" "}
             <a
               href="https://react.dev/"
-              className="text-purple-400 no-underline"
+              className="text-purple-400 no-underline hover:underline"
               target="_blank"
             >
               React.js
