@@ -83,8 +83,10 @@ public class AuthController {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDto.username(), loginRequestDto.password()));
         } catch (Exception e) {
-            System.out.println("Exception: " + e);
+            System.out.println("Authentication failed: " + e.getMessage());
+            return ResponseEntity.status(401).body("Invalid username or password");
         }
+
         String token = jwtUtil.generateToken(loginRequestDto.username());
         User user = userRepository.findByUsername(loginRequestDto.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
