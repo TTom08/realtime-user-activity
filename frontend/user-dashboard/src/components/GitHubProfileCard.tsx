@@ -55,17 +55,17 @@ const GitHubProfileCard: React.FC<GitHubProfileCardProps> = ({ username }) => {
 
   return (
     <div className="flex flex-col items-center text-center p-4">
-      <h2 className="text-2xl font-bold mb-2">{username}</h2>
+      <h2 className="text-2xl font-bold mb-2 text-gray-200">{username}</h2>
       <img
         src={profileData.avatar_url}
         alt={`${username}'s GitHub Profile`}
         className="w-24 h-24 rounded-full mb-4"
       />
-      <h3 className="text-xl font-bold">
+      <h3 className="text-xl font-bold text-gray-200">
         {profileData.name || profileData.login}
       </h3>
-      <p className="text-gray-600 text-sm mt-1">{profileData.bio}</p>
-      <div className="flex space-x-4 mt-2 text-xs text-gray-500">
+      <p className="text-gray-200 text-sm mt-1">{profileData.bio}</p>
+      <div className="flex space-x-4 mt-2 text-xs text-gray-200">
         <p>Followers: {profileData.followers}</p>
         <p>Repos: {profileData.public_repos}</p>
       </div>
@@ -73,7 +73,7 @@ const GitHubProfileCard: React.FC<GitHubProfileCardProps> = ({ username }) => {
         href={profileData.html_url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-red-500 mt-2 hover:underline"
+        className="text mt-2 hover:underline text-pink-700"
       >
         View Profile
       </a>
