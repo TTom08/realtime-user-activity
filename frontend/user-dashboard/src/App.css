@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 .custom-bg {
-  background: radial-gradient(at 87% 74%, #730f8f 0px, transparent 50%),
+  background:
+    radial-gradient(at 87% 74%, #730f8f 0px, transparent 50%),
     radial-gradient(at 8% 0%, #253a8e 0px, transparent 50%), #176d68;
 }
 
-.welcome-bg{
-  background-image:url("C:\Users\alzilahi\WebApp\realtime-user-activity\frontend\user-dashboard\src\assets\sky3.jpg");
+.welcome-bg {
+  background-image: url("src/assets/sky3.jpg");
   background-size: cover;
 }
 
-.dark-wallpaper{
-  background-image:url("C:\Users\alzilahi\WebApp\realtime-user-activity\frontend\user-dashboard\src\assets\star.jpg");
+.dark-wallpaper {
+  background-image: url("src/assets/star.jpg");
   background-size: cover;
 }
