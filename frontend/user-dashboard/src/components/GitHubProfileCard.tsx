@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-// Típusok definiálása a GitHub API adatokhoz
 interface GitHubUser {
   login: string;
   avatar_url: string;
