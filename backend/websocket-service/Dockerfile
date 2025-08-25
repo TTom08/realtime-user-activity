@@ -37,4 +37,4 @@ COPY --from=builder /app/target/websocket-service-0.0.1-SNAPSHOT.jar /app/websoc
 EXPOSE 8083
 
 # The command to run the application
-CMD ["java", "-jar", "websocket-service.jar"]
+CMD ["java", "-jar", "websocket-service.jar", "--spring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}"]
