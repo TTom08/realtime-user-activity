@@ -34,18 +34,10 @@ RUN apk add --no-cache bash netcat-openbsd dos2unix
 # Copy the JAR file from the 'builder' stage to the final image
 COPY --from=builder /app/target/auth-service-0.0.1-SNAPSHOT.jar /app/auth-service.jar
 
-# This is the crucial change: Copy the entrypoint script to a fixed location.
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-
-# Convert Windows line endings to Unix format. This is the fix for the `not found` error.
-RUN dos2unix /usr/local/bin/entrypoint.sh
-
-# Make the entrypoint script executable
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 # Expose the port
 EXPOSE 8081
 
-# Now, we use ENTRYPOINT to explicitly override the base image's default.
-# This ensures our script is the first thing to run.
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# THIS IS THE NEW, CRUCIAL LINE.
+# This CMD provides the arguments to the entrypoint.sh script.
+# It tells the script to wait for `kafka:29092` before running `java -jar auth-service.jar`.
+CMD ["java", "-jar", "auth-service.jar", "--spring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}"]

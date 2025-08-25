@@ -6,7 +6,7 @@ services:
     image: "postgres:17.5"
     container_name: postgres_users_container
     ports:
-      - "3000:5432" # Expose user-details database to host port 2705
+      - "3000:5432"
     environment:
       POSTGRES_DB: user-details
       POSTGRES_USER: postgres
@@ -20,7 +20,7 @@ services:
     image: "postgres:17.5"
     container_name: postgres_activities_container
     ports:
-      - "3001:5432" # Expose activity-db database to host port 2706
+      - "3001:5432"
     environment:
       POSTGRES_DB: activity-db
       POSTGRES_USER: postgres
@@ -39,6 +39,11 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 2181 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Kafka message broker
   kafka:
@@ -55,11 +60,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy # Wait for Zookeeper to be healthy
     restart: on-failure
     healthcheck:
-      test:
-        ["CMD-SHELL", "kafka-topics --list --bootstrap-server localhost:29092"]
+      test: ["CMD-SHELL", "kafka-topics --list --bootstrap-server kafka:29092"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,13 +87,20 @@ services:
   # The Auth-service
   auth-service:
     build:
-      context: ./auth-service # Path to the auth-service directory
+      context: ./auth-service
     container_name: auth-service_container
     ports:
       - "8081:8081"
     depends_on:
-      - postgres_users
-      - kafka
+      postgres_users:
+        condition: service_started
+      kafka:
+        condition: service_healthy # Wait for Kafka to be healthy
+    command: >
+      sh -c "while ! nc -z kafka 29092; do
+        sleep 1;
+      done;
+      java -jar /app/auth-service.jar"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_users:5432/user-details
       SPRING_DATASOURCE_USERNAME: postgres
@@ -99,17 +111,32 @@ services:
   # The Activity-service
   activity-service:
     build:
-      context: ./activity-service # Path to the activity-service directory
+      context: ./activity-service
     container_name: activity-service_container
     ports:
       - "8082:8082"
     depends_on:
-      - postgres_activities
-      - kafka
+      postgres_activities:
+        condition: service_started
+      kafka:
+        condition: service_healthy # Wait for Kafka to be healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: majkaskepek
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    restart: on-failure
+
+  websocket-service:
+    build:
+      context: ./websocket-service
+    container_name: websocket-service_container
+    ports:
+      - "8083:8083"
+    depends_on:
+      kafka:
+        condition: service_healthy # Wait for Kafka to be healthy
+    environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     restart: on-failure
 

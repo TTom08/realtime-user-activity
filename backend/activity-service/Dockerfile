@@ -37,4 +37,4 @@ COPY --from=builder /app/target/activity-service-0.0.1-SNAPSHOT.jar /app/activit
 EXPOSE 8082
 
 # The command to run the application
-CMD ["java", "-jar", "activity-service.jar"]
+CMD ["java", "-jar", "activity-service.jar", "--spring.kafka.bootstrap-servers=${SPRING_KAFKA_BOOTSTRAP_SERVERS}"]
