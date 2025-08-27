@@ -4,6 +4,7 @@ import dto.DashboardSummaryDto;
 import dto.KafkaProducerDto;
 import entity.UserPresence;
 import org.springframework.stereotype.Service;
+import repository.UserActivityRepository;
 import repository.UserPresenceRepository;
 
 import java.time.Duration;
@@ -17,9 +18,11 @@ public class DashboardService {
     private static final Duration ACTIVE_FOR = Duration.ofMinutes(5);
 
     private final UserPresenceRepository userPresenceRepository;
+    private final UserActivityRepository userActivityRepository;
 
-    public DashboardService(UserPresenceRepository userPresenceRepository) {
+    public DashboardService(UserPresenceRepository userPresenceRepository, UserActivityRepository userActivityRepository) {
         this.userPresenceRepository = userPresenceRepository;
+        this.userActivityRepository = userActivityRepository;
     }
 
     public DashboardSummaryDto getUserStatusSummary() {
@@ -43,6 +46,9 @@ public class DashboardService {
         summary.setActiveUsers(activeCount);
         summary.setInactiveUsers((long) inactiveDetails.size());
         summary.setInactiveUserDetails(inactiveDetails);
+
+        summary.setTotalActivities(userActivityRepository.count());
+        summary.setRecentActivities(userActivityRepository.findAllByOrderByEventDateDesc());
 
         return summary;
 
