@@ -1,12 +1,12 @@
 package controller;
 
-import dto.DashboardMetricsDto;
+import dto.DashboardSummaryDto;
 import dto.KafkaProducerDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import service.DashboardKafkaConsumerService;
+import service.DashboardService;
 
 import java.util.List;
 
@@ -14,18 +14,18 @@ import java.util.List;
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
-    private final DashboardKafkaConsumerService dashboardService;
+    private final DashboardService dashboardService;
 
 
-    public DashboardController(DashboardKafkaConsumerService dashboardService) {
+    public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<KafkaProducerDto>> getDashboardData() {
+    @GetMapping("/status")
+    public ResponseEntity<DashboardSummaryDto> getUserStatus() {
 
-        List<KafkaProducerDto> recentEvents = dashboardService.getRecentEvents();
+        DashboardSummaryDto status = dashboardService.getUserStatusSummary();
 
-        return ResponseEntity.ok(recentEvents);
+        return ResponseEntity.ok(status);
     }
 }

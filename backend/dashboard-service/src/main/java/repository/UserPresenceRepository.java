@@ -1,0 +1,10 @@
+package repository;
+
+import entity.UserPresence;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserPresenceRepository extends JpaRepository<UserPresence, String> {
+    Optional<UserPresence> findByUserId(Long userId);
+}
