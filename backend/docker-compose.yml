@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  # User Details Database (for auth-service)
   postgres_users:
     image: "postgres:17.5"
     container_name: postgres_users_container
@@ -15,7 +14,6 @@ services:
       - postgres_users_data:/var/lib/postgresql/data
     restart: on-failure
 
-  # Activity Database (for activity-service)
   postgres_activities:
     image: "postgres:17.5"
     container_name: postgres_activities_container
@@ -29,7 +27,19 @@ services:
       - postgres_activities_data:/var/lib/postgresql/data
     restart: on-failure
 
-  # Zookeeper (Kafka dependency)
+  postgres_dashboard:
+    image: "postgres:17.5"
+    container_name: postgres_dashboard_container
+    ports:
+      - "3002:5432"
+    environment:
+      POSTGRES_DB: dashboard-details
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: majkaskepek
+    volumes:
+      - postgres_dashboard_data:/var/lib/postgresql/data
+    restart: on-failure
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper_container
@@ -45,7 +55,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Kafka message broker
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka_container
@@ -61,7 +70,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       zookeeper:
-        condition: service_healthy # Wait for Zookeeper to be healthy
+        condition: service_healthy
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics --list --bootstrap-server kafka:29092"]
@@ -70,7 +79,6 @@ services:
       retries: 5
       start_period: 20s
 
-  # Kafka UI for easy debugging
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui_container
@@ -84,7 +92,6 @@ services:
       - kafka
     restart: on-failure
 
-  # The Auth-service
   auth-service:
     build:
       context: ./auth-service
@@ -95,7 +102,7 @@ services:
       postgres_users:
         condition: service_started
       kafka:
-        condition: service_healthy # Wait for Kafka to be healthy
+        condition: service_healthy
     command: >
       sh -c "while ! nc -z kafka 29092; do
         sleep 1;
@@ -108,7 +115,6 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     restart: on-failure
 
-  # The Activity-service
   activity-service:
     build:
       context: ./activity-service
@@ -119,7 +125,7 @@ services:
       postgres_activities:
         condition: service_started
       kafka:
-        condition: service_healthy # Wait for Kafka to be healthy
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_activities:5432/activity-db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -135,11 +141,30 @@ services:
       - "8083:8083"
     depends_on:
       kafka:
-        condition: service_healthy # Wait for Kafka to be healthy
+        condition: service_healthy
     environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    restart: on-failure
+
+  dashboard-service:
+    build:
+      context: ./dashboard-service
+    container_name: dashboard-service_container
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres_activities:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_dashboard:5432/dashboard-details
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: majkaskepek
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     restart: on-failure
 
 volumes:
   postgres_users_data:
   postgres_activities_data:
+  postgres_dashboard_data:
