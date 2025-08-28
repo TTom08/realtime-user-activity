@@ -12,6 +12,8 @@ import com.example.auth_service.security.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,7 +73,7 @@ public class AuthController {
 
         KafkaProducerDto event = new KafkaProducerDto(
                 newUser.getId(),
-                "USER_REGISTERED",
+                "USER_REGISTER",
                 Instant.now()
         );
         kafkaProducerService.sendMessage(event);
@@ -98,5 +100,23 @@ public class AuthController {
         );
         kafkaProducerService.sendMessage(event);
         return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logoutUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        KafkaProducerDto event = new KafkaProducerDto(
+                user.getId(),
+                "USER_LOGOUT",
+                Instant.now()
+        );
+        kafkaProducerService.sendMessage(event);
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
