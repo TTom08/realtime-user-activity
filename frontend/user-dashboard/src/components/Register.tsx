@@ -12,6 +12,8 @@ interface RegisterFormData {
 const Register = () => {
   const navigate = useNavigate();
 
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
@@ -22,6 +24,15 @@ const Register = () => {
 
   const onSubmit: SubmitHandler<RegisterFormData> = async (formData) => {
     setIsLoading(true);
+    setErrorMessage("");
+
+    console.log("Submitting form data:", formData);
+
+    if (!formData.fullName || !formData.userName || !formData.password) {
+      setErrorMessage("All fields are required.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:8081/auth/register", {
@@ -38,17 +49,26 @@ const Register = () => {
 
       if (!response.ok) {
         if (response.status === 409) {
-          throw new Error("Username already exists.");
+          setErrorMessage("Username already exists.");
+        } else {
+          const errorText = await response.text();
+          setErrorMessage(`Registration failed: ${errorText}`);
         }
-        throw new Error(`Registration failed with status: ${response.status}`);
+        return;
       }
 
-      const result = await response.text();
-      console.log("Registration successful: ", result);
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("text/plain")) {
+        const result = await response.text();
+        console.log("Registration successful: ", result);
+      } else {
+        console.log("Registration successful.");
+      }
 
       navigate("/");
     } catch (error) {
       console.error("Error during registration: ", error);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +93,11 @@ const Register = () => {
           </div>
         </div>
         <div className="mx-auto mt-5 w-full max-w-md rounded-sm border border-gray-300 bg-gray-800/30 p-8 shadow-xl/35">
+          {errorMessage && (
+            <div className="mb-4 rounded-md bg-red-500/20 p-3 text-center text-sm font-semibold text-red-300">
+              {errorMessage}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label

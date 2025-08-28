@@ -5,6 +5,7 @@ import HomePage from "./components/HomePage";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Activities from "./components/Activities";
+import Userstatus from "./components/Userstatus";
 import "./App.css";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/activities" element={<Activities />} />
+        <Route path="/userstatus" element={<Userstatus />} />
       </Routes>
     </Router>
   );

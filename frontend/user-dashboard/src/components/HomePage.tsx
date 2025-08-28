@@ -66,9 +66,13 @@ const HomePage = () => {
         </a>
         <a
           href="#"
-          className="block rounded-md px-4 py-2 transition-colors duration-200 hover:bg-gray-700"
+          className="mt-2 block rounded-md px-4 py-2 transition-colors duration-200 hover:bg-gray-700"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/userstatus");
+          }}
         >
-          Link 2
+          User details
         </a>
         <div className="mt-auto border-t-2 border-gray-700 pt-4">
           <button
