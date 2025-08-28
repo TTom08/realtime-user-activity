@@ -15,10 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -28,6 +25,8 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:5173")
+
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -36,7 +35,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final KafkaProducerService kafkaProducerService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository,RoleRepository roleRepository, PasswordEncoder passwordEncoder, KafkaProducerService kafkaProducerService) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, KafkaProducerService kafkaProducerService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
@@ -47,7 +46,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDto registerRequestDto) {
-        if(userRepository.findByUsername(registerRequestDto.username()).isPresent()) {
+        if (userRepository.findByUsername(registerRequestDto.username()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken");
         }
 
@@ -103,20 +102,29 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logoutUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+    public ResponseEntity<String> logoutUser(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else {
+            return ResponseEntity.status(400).body("Missing or invalid Authorization header");
+        }
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            String username = jwtUtil.extractUsername(token);
 
-        KafkaProducerDto event = new KafkaProducerDto(
-                user.getId(),
-                "USER_LOGOUT",
-                Instant.now()
-        );
-        kafkaProducerService.sendMessage(event);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return ResponseEntity.ok("Logged out successfully");
+            KafkaProducerDto event = new KafkaProducerDto(
+                    user.getId(),
+                    "USER_LOGOUT",
+                    Instant.now()
+            );
+            kafkaProducerService.sendMessage(event);
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Invalid token");
+        }
     }
 }
