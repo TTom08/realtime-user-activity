@@ -25,7 +25,25 @@ const HomePage = () => {
 
   const welcomeMessage = username ? `Welcome, ${username}` : "Welcome";
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+      try {
+        await fetch("http://localhost:8081/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Logout activity logged successfully.");
+      } catch (error) {
+        console.error("Failed to log out activity on the server:", error);
+      }
+    }
+
     localStorage.removeItem("authToken");
     navigate("/");
   };
@@ -39,20 +57,18 @@ const HomePage = () => {
         <a
           href="#"
           className="mt-2 block rounded-md px-4 py-2 transition-colors duration-200 hover:bg-gray-700"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate("/activities");
+          }}
         >
-          Link 1
+          User Status
         </a>
         <a
           href="#"
           className="block rounded-md px-4 py-2 transition-colors duration-200 hover:bg-gray-700"
         >
           Link 2
-        </a>
-        <a
-          href="#"
-          className="block rounded-md px-4 py-2 transition-colors duration-200 hover:bg-gray-700"
-        >
-          Link 3
         </a>
         <div className="mt-auto border-t-2 border-gray-700 pt-4">
           <button

@@ -25,5 +25,6 @@ public class ActivityService {
         userActivity.setTimestamp(event.getTimestamp());
         userActivityRepository.save(userActivity);
     }
+    
 
 }
