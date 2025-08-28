@@ -62,7 +62,7 @@ const HomePage = () => {
             navigate("/activities");
           }}
         >
-          User Status
+          Activities
         </a>
         <a
           href="#"
